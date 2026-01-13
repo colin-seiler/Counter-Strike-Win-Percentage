@@ -77,6 +77,8 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+.ipynb_checkpoints/
+
 
 # IPython
 profile_default/
@@ -138,6 +140,7 @@ celerybeat.pid
 .env
 .envrc
 .venv
+.myvenv
 env/
 venv/
 ENV/
@@ -153,6 +156,7 @@ venv.bak/
 
 # mkdocs documentation
 /site
+.DS_Store
 
 # mypy
 .mypy_cache/
@@ -206,5 +210,14 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# Data files (IMPORTANT!)
 data/
-notebooks/
+*.csv
+*.rar
+*.dem
+*.zip
+demos/
+temp/
+downloads/
+
+data/

@@ -1,0 +1,23 @@
+from psycopg2 import connect, Error
+
+from src.sql.schema import (SCHEMA_DATA, INDEX_DATA,
+                            SCHEMA_QUEUE, INDEX_QUEUE)
+
+def create_connection(db_url, delete_db=False):
+    #Create connection to postgresql db
+    try:
+        conn = connect(db_url)
+        return conn
+    except Error as e:
+        print("Error connecting to PostgreSQL:", e)
+    return conn
+
+def create_table(conn):
+    cur = conn.cursor()
+
+    cur.execute(SCHEMA_DATA)
+    cur.execute(SCHEMA_QUEUE)
+    cur.execute(INDEX_DATA)
+    cur.execute(INDEX_QUEUE)
+
+    conn.close()
