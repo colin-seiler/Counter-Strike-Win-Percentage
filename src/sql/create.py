@@ -1,12 +1,18 @@
+import os
 from psycopg2 import connect, Error
 
 from src.sql.schema import (SCHEMA_DATA, INDEX_DATA,
                             SCHEMA_QUEUE, INDEX_QUEUE)
 
-def create_connection(db_url, delete_db=False):
+def create_connection():
     #Create connection to postgresql db
     try:
-        conn = connect(db_url)
+        conn = connect(
+            host = os.getenv("DB_HOST"),
+            database = os.getenv("DB_NAME"),
+            user = os.getenv("DB_USER"),
+            password = os.getenv("DB_PASSWORD")
+        )
         return conn
     except Error as e:
         print("Error connecting to PostgreSQL:", e)
