@@ -13,3 +13,11 @@ def select_match(conn, game_id=None):
         row = cur.fetchone()
 
         return row
+    
+def check_pending_count(conn):
+    cur = conn.cursor()
+    cur.execute("""
+    SELECT COUNT(*) FROM match_queue WHERE status IS 'pending'
+    """)
+    count = cur.fetchone()
+    return count
