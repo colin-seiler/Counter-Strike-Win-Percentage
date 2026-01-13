@@ -218,3 +218,5 @@ def insert_queue(conn, match_list):
 
     conn.commit()
     cur.close()
+
+    return len(match_list)
