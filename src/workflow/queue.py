@@ -29,6 +29,8 @@ def scrape_new(conn): #Scrape matches until there are no more to scrape
         lower += 1
         upper += 1
 
+    return inserted
+
 def get_match_in_queue(conn, game_id=None):
     #Pull match in queue and download info and demo
     match = select_match(conn)
