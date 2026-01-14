@@ -140,7 +140,7 @@ UPDATE_FAIL = """
 SELECT_BY_QUEUE = """
     SELECT queue_id, match_url
     FROM match_queue
-    WHERE status IS 'pending'
+    WHERE status = 'pending'
     LIMIT 1
     """
 
