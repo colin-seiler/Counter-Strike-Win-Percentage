@@ -33,6 +33,8 @@ def scrape_results(min_star=1, min_offset=0, max_offset=1):
         temp_matches = scrape_results_page(results_url=results_url, offset=offset)
         if temp_matches:
             scraped_matches.extend(temp_matches)
+        else:
+            print('Unable to connect to HLTV: Most likely blocked by CloudFlare')
 
         if num != max_offset-1:
             time.sleep(20)
