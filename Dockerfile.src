@@ -10,14 +10,14 @@ RUN apt-get update && \
 
 WORKDIR /CS2_Project
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY src/requirements-src.txt .
+RUN pip install --no-cache-dir -r requirements-src.txt
 
-COPY src/ ./src/
+COPY . .
 
 RUN mkdir -p /CS2_Project/data/rars
 RUN mkdir -p /CS2_Project/data/demos
 
 ENV PYTHONUNBUFFERED=1
 
-CMD ["python", "main.py"]
+CMD ["python", "-m", "src.main"]

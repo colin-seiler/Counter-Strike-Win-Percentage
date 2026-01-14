@@ -6,64 +6,62 @@ services:
     image: postgres:15-alpine
     container_name: cs2-database
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - cs2-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
     restart: unless-stopped
 
-  #API
-  api:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: cs2-api
-    environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - cs2-network
-    restart: unless-stopped
+  # #API
+  # api:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: cs2-api
+  #   environment:
+  #     DB_HOST: postgres
+  #     DB_PORT: 5432
+  #     DB_NAME: ${DB_NAME}
+  #     DB_USER: ${DB_USER}
+  #     DB_PASSWORD: ${DB_PASSWORD}
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - cs2-network
+  #   restart: unless-stopped
 
-  #UI
-  ui:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: cs2-ui
-    environment:
-      API_URL: http://api:8000
-    ports:
-      - "8501:8501"
-    depends_on:
-      - api
-    networks:
-      - cs2-network
-    restart: unless-stopped 
+  # #UI
+  # ui:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: cs2-ui
+  #   environment:
+  #     API_URL: http://api:8000
+  #   ports:
+  #     - "8501:8501"
+  #   depends_on:
+  #     - api
+  #   networks:
+  #     - cs2-network
+  #   restart: unless-stopped 
 
   #Backend Work
   processor:
     build:
-      context: ./processor
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.src
     container_name: cs2-processor
     environment:
       DB_HOST: postgres
@@ -73,8 +71,6 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-    volumes:
-      - ./temp:/app/temp
     depends_on:
       postgres:
         condition: service_healthy
