@@ -71,31 +71,31 @@ def insert_rounds(conn, map_id, starts, ends):
 def insert_teams(conn, unique_pairs): #unique_pairs = ticks[['steamid', 'name', 'team_clan_name']].drop_duplicates()
     cur = conn.cursor()
 
-    teams = unique_pairs['team_clan_name'].unique()
+    team_names = unique_pairs['team_clan_name'].unique()
 
-    cur.execute(TEAM_SQL, (teams[0],))
+    cur.execute(TEAM_SQL, (team_names[0],))
     team1_id = cur.fetchone()[0]
 
-    cur.execute(TEAM_SQL, (teams[1],))
+    cur.execute(TEAM_SQL, (team_names[1],))
     team2_id = cur.fetchone()[0]
     
     conn.commit()
     cur.close()
 
-    teams = {teams[0]: team1_id, teams[1]: team2_id}
+    teams = {team_names[0]: team1_id, team_names[1]: team2_id}
 
     return teams
 
-def insert_players(conn, unique_pairs, teams):
-    cur = conn.cursor
+def insert_players(conn, unique_pairs, team_dict):
+    cur = conn.cursor()
 
     players = {}
     teams = {}
-    for pair in unique_pairs.iterrows():
+    for idx, pair in unique_pairs.iterrows():
         steamid = pair['steamid']
         name = pair['name']
         team = pair['team_clan_name']
-        teamid = teams.get(team)
+        teamid = team_dict.get(team)
 
         cur.execute(PLAYER_SQL, (steamid, name))
 
@@ -109,7 +109,7 @@ def insert_players(conn, unique_pairs, teams):
     return players, teams
 
 def insert_rosters(conn, map_id, players, teams):
-    cur = conn.cursor
+    cur = conn.cursor()
 
     for player in players.keys():
         cur.execute(ROSTER_SQL, (map_id, players.get(player), teams.get(player)))
@@ -121,7 +121,7 @@ def insert_ticks(conn, map_id, players, ticks):
     cur = conn.cursor()
 
     ticks['map_id'] = map_id
-    ticks['user_player_id'] = ticks['steam'].map(players)
+    ticks['user_player_id'] = ticks['steamid'].map(players)
     ticks['inventory'] = ticks['inventory'].apply(inventory_convert)
 
     data = [tuple(row) for row in ticks[['map_id', 
@@ -156,8 +156,8 @@ def insert_damage(conn, map_id, players, hurts):
     hurts['attacker_player_id'] = hurts['attacker_steamid'].map(players)
 
     data = [tuple(row) for row in hurts[['map_id', 
-                  'user_player_id', 'attacker_player_id', 
-                  'tick', 'damage', 'weapon', 'hitgroup']].values]
+                                         'user_player_id', 'attacker_player_id', 
+                                         'tick', 'damage', 'weapon', 'hitgroup']].values]
     
     execute_values(cur, DAMAGE_SQL, data)
 
@@ -170,12 +170,12 @@ def insert_death(conn, map_id, players, deaths):
     deaths['map_id'] = map_id
     deaths['user_player_id'] = deaths['user_steamid'].map(players)
     deaths['attacker_player_id'] = deaths['attacker_steamid'].map(players)
+    deaths['assister_player_id'] = deaths['assister_steamid'].map(players)
 
-    data = [tuple(row) for row in deaths[['map_id',
-                        'user_player_id', 'attacker_player_id', 'assister_player_id',
-                        'tick', 'damage', 'weapon', 'hitgroup',
-                        'is_headshot', 'is_attackerblind', 'is_attackerinair', 'is_noscope',
-                        'is_penetrated', 'is_thrusmoke', 'is_assistedflash']].values]
+    data = [tuple(row) for row in deaths[['map_id', 
+                                          'user_player_id', 'attacker_player_id', 'assister_player_id', 
+                                          'tick', 'damage', 'weapon', 'hitgroup', 
+                                          'is_headshot', 'is_attackerblind', 'is_attackerinair', 'is_noscope', 'is_penetrated', 'is_thrusmoke', 'is_assistedflash']].values]
     
     execute_values(cur, DEATH_SQL, data)
 
