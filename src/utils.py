@@ -1,4 +1,5 @@
 import json
+import glob
 import os
 from src.constants import GRENADE_LIST, SECONDARY_LIST
 
@@ -35,3 +36,9 @@ def delete_file(filename):
         return True
     else:
         return False
+
+def clear_demos(demo_path='data/demos/'):
+    print('Clearing old and corrupt demos')
+    for old_demo in glob.glob(os.path.join(demo_path, '*.dem')):
+        print(f'Deleted {old_demo}')
+        os.remove(old_demo)
