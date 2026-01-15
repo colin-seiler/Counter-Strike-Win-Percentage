@@ -73,16 +73,24 @@ def parse_file(file):
     planted = frames.get('bomb_planted') 
     if planted is None:
         planted = pd.DataFrame()
+    elif not planted.empty:
+        planted['action'] = 'plant'
+
     defused = frames.get('bomb_defused')
     if defused is None:
         defused = pd.DataFrame()
+    elif not defused.empty:
+        defused['action'] = 'defuse'
+
     explode = frames.get('bomb_exploded')
     if explode is None:
         explode = pd.DataFrame()
+    elif not explode.empty:
+        explode['action'] = 'explode'
+        
     bombs = pd.concat([planted, defused, explode], ignore_index=True)
     if not bombs.empty:
         ticks.append(bombs['tick'])
-
 
     #START AND END OF ROUND
     round_numbers = (players[players['tick'].isin(round_starts['tick'])][['tick', 'total_rounds_played']]
@@ -105,7 +113,7 @@ def parse_file(file):
     players['is_ct'] = players['team_name'].map({'CT':True,'TERRORIST':False})
 
     #BOMB INFO
-    if planted is not None:
+    if not planted.empty:
         bomb_df = players.merge(planted.drop(columns='user_name'), left_on=['tick', 'steamid'], right_on=['tick', 'user_steamid'], how='left').rename(columns={'user_last_place_name':'bomb_site'})
         players['bomb_planted'] = bomb_df['site'].notna().astype(int)
 
