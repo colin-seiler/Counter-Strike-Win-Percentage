@@ -1,14 +1,14 @@
 EVENT_SQL = """
     INSERT INTO events (event_url, event_name)
-    VALUES (%s, %s, %s)
+    VALUES (%s, %s)
     ON CONFLICT (event_url)
     DO UPDATE SET event_url = EXCLUDED.event_url
     RETURNING event_id;
     """
 
 MATCH_SQL = """
-    INSERT INTO matches (event_id, match_url, match_name, match_date)
-    VALUES (%s, %s, %s, %s)
+    INSERT INTO matches (event_id, match_url, match_date, match_team_1, match_team_2)
+    VALUES (%s, %s, %s, %s, %s)
     ON CONFLICT (match_url)
     DO UPDATE SET match_url = EXCLUDED.match_url
     RETURNING match_id;
@@ -57,7 +57,7 @@ TICK_SQL = """
         tick, round_num, 
         health, 
         x, y, z, 
-        velocity_x, velocity_y, velocity_z
+        velocity_x, velocity_y, velocity_z,
         yaw, pitch, 
         inventory,
         inventory_value,
@@ -141,6 +141,7 @@ SELECT_BY_QUEUE = """
     SELECT queue_id, match_url
     FROM match_queue
     WHERE status = 'pending'
+    ORDER BY queue_id ASC
     LIMIT 1
     """
 
