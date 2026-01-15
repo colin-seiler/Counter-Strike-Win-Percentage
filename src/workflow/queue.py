@@ -57,5 +57,6 @@ def get_match_in_queue(conn, game_id=None):
         else:
             print('Unable to Download RAR file')
 
+    
     update_queue(conn, demo_link, game_id, updated=False)
     return None
