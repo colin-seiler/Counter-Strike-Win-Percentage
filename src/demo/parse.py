@@ -10,8 +10,10 @@ from src.demo.constants import (PLAYER_PROPS,
                                 HURT_COLS, 
                                 NADE_COLS)
 
-BASE_DIR = Path.cwd().parents[1]
+BASE_DIR = Path.cwd()
 DATA_DIR = BASE_DIR / 'data'
+RAR_DIR = DATA_DIR / 'rars'
+DEMO_DIR = DATA_DIR / 'demos'
 
 def parse_demo(path):
     #Parse Demo using DemoParser2
@@ -34,30 +36,38 @@ def parse_file(file):
     frames = {frame[0]:frame[1] for frame in events}
     
     #EXTRACT EVENTS
+    ticks = [] #ticks is what will be concat'd for important ticks
     match_start = frames.get('round_announce_match_start')
     if match_start is not None:
         match_start = match_start.loc[0, 'tick']
     round_starts = frames.get('cs_round_final_beep')
+    if round_starts is not None:
+        ticks.append(round_starts['tick'])
     match_end = frames.get('cs_win_panel_match')
     if match_end is not None:
         match_end = match_end.loc[0, 'tick']
-    rounds = frames.get('round_start')
-    if rounds is not None:
-        rounds = rounds.loc[rounds.groupby('round')['tick'].idxmax()]
-        rounds['round'] = np.arange(1, len(rounds) + 1)
     round_ends = frames.get('round_end')
     if round_ends is not None:
         round_ends = round_ends[(round_ends['reason'].notna()) & (round_ends['tick'] != 0) & (round_ends['winner'].notna())]
         round_ends['round'] = np.arange(1, len(round_ends) + 1)
+        ticks.append(round_ends['tick'])
+    rounds = frames.get('round_start')
+    if rounds is not None:
+        rounds = rounds.loc[rounds.groupby('round')['tick'].idxmax()]
+        rounds['round'] = np.arange(1, len(rounds) + 1)
+        ticks.append(rounds['tick'])
     deaths = frames.get('player_death')
     if deaths is not None:
         deaths = deaths[DEATH_COLS]
+        ticks.append(deaths['tick'])
     hurt = frames.get('player_hurt')
     if hurt is not None:
         hurt = hurt[HURT_COLS]
+        ticks.append(hurt['tick'])
     nades = frames.get('grenade_thrown')
     if nades is not None:
         nades = nades[NADE_COLS]
+        ticks.append(nades['tick'])
     
     #IN CASE OF NO PLANT, DEFUSE, EXPLODE
     planted = frames.get('bomb_planted') 
@@ -70,6 +80,8 @@ def parse_file(file):
     if explode is None:
         explode = pd.DataFrame()
     bombs = pd.concat([planted, defused, explode], ignore_index=True)
+    if not bombs.empty:
+        ticks.append(bombs['tick'])
 
 
     #START AND END OF ROUND
@@ -90,32 +102,22 @@ def parse_file(file):
     players = players[in_round | shifted_in_round]
     players['round_num'] = players['total_rounds_played'] + 1
     players['has_armor'] = players['armor_value'] > 0
-    players['is_ct'] = players['team_name'].map({'CT':True,'T':False})
+    players['is_ct'] = players['team_name'].map({'CT':True,'TERRORIST':False})
 
     #BOMB INFO
     if planted is not None:
         bomb_df = players.merge(planted.drop(columns='user_name'), left_on=['tick', 'steamid'], right_on=['tick', 'user_steamid'], how='left').rename(columns={'user_last_place_name':'bomb_site'})
         players['bomb_planted'] = bomb_df['site'].notna().astype(int)
 
-        players['is_planted'] = np.where(players['bomb_planted']==1, True, pd.NA)
+        players['is_planted'] = np.where(players['bomb_planted']==1, True, None)
         players['is_planted'] = players.groupby('round_num')['is_planted'].ffill()
         players['is_planted'] = players['is_planted'].astype('boolean').fillna(False)
 
-        players['bomb_site'] = np.where(bomb_df['bomb_site'].notna(), bomb_df['bomb_site'], pd.NA)
+        players['bomb_site'] = np.where(bomb_df['bomb_site'].notna(), bomb_df['bomb_site'], None)
         players['bomb_site'] = players.groupby('round_num')['bomb_site'].ffill()
 
     #GET TICKS WHERE EVENT OCCURS
-    important_ticks = pd.concat([
-        round_starts['tick'],
-        round_ends['tick'],
-        rounds['tick'],
-        deaths['tick'],
-        hurt['tick'],
-        nades['tick'],
-        planted['tick'],
-        defused['tick'],
-        explode['tick']
-    ])
+    important_ticks = pd.concat(ticks)
 
     #CREATE MASKS FOR EVENTS
     important_ticks = important_ticks[important_ticks.isin(players['tick'])]
