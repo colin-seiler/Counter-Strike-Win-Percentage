@@ -1,5 +1,4 @@
 import pandas as pd
-from psycopg2 import sql, Error
 from psycopg2.extras import execute_values
 
 from src.utils import inventory_convert
@@ -121,7 +120,7 @@ def insert_ticks(conn, map_id, players, ticks):
     cur = conn.cursor()
 
     ticks['map_id'] = map_id
-    ticks['user_player_id'] = ticks['steamid'].map(players)
+    ticks['user_player_id'] = ticks['steamid'].map(players).astype('Int32')
     ticks['inventory'] = ticks['inventory'].apply(inventory_convert)
 
     data = [tuple(row) for row in ticks[['map_id', 
@@ -152,12 +151,13 @@ def insert_damage(conn, map_id, players, hurts):
     cur = conn.cursor()
 
     hurts['map_id'] = map_id
-    hurts['user_player_id'] = hurts['user_steamid'].map(players)
-    hurts['attacker_player_id'] = hurts['attacker_steamid'].map(players)
+    hurts['user_player_id'] = hurts['user_steamid'].map(players).astype('Int32')
+    hurts['attacker_player_id'] = hurts['attacker_steamid'].map(players).astype('Int32')
+    hurts = hurts.replace({pd.NA: None})
 
     data = [tuple(row) for row in hurts[['map_id', 
                                          'user_player_id', 'attacker_player_id', 
-                                         'tick', 'damage', 'weapon', 'hitgroup']].values]
+                                         'tick', 'dmg_health', 'weapon', 'hitgroup']].values]
     
     execute_values(cur, DAMAGE_SQL, data)
 
@@ -168,14 +168,16 @@ def insert_death(conn, map_id, players, deaths):
     cur = conn.cursor()
 
     deaths['map_id'] = map_id
-    deaths['user_player_id'] = deaths['user_steamid'].map(players)
-    deaths['attacker_player_id'] = deaths['attacker_steamid'].map(players)
-    deaths['assister_player_id'] = deaths['assister_steamid'].map(players)
+    deaths['user_player_id'] = deaths['user_steamid'].map(players).astype('Int32')
+    deaths['attacker_player_id'] = deaths['attacker_steamid'].map(players).astype('Int32')
+    deaths['assister_player_id'] = deaths['assister_steamid'].map(players).astype('Int32')
+    deaths = deaths.replace({pd.NA: None})
+    deaths['penetrated'] = deaths['penetrated'].astype(bool)
 
     data = [tuple(row) for row in deaths[['map_id', 
                                           'user_player_id', 'attacker_player_id', 'assister_player_id', 
-                                          'tick', 'damage', 'weapon', 'hitgroup', 
-                                          'is_headshot', 'is_attackerblind', 'is_attackerinair', 'is_noscope', 'is_penetrated', 'is_thrusmoke', 'is_assistedflash']].values]
+                                          'tick', 'dmg_health', 'weapon', 'hitgroup', 
+                                          'headshot', 'attackerblind', 'attackerinair', 'noscope', 'penetrated', 'thrusmoke', 'assistedflash']].values]
     
     execute_values(cur, DEATH_SQL, data)
 
@@ -186,7 +188,8 @@ def insert_nades(conn, map_id, players, nades):
     cur = conn.cursor()
 
     nades['map_id'] = map_id
-    nades['user_player_id'] = nades['user_steamid'].map(players)
+    nades['user_player_id'] = nades['user_steamid'].map(players).astype('Int32')
+    nades = nades.replace({pd.NA: None})
 
     data = [tuple(row) for row in nades[['map_id', 'user_player_id', 'tick', 'weapon']].values]
 
@@ -199,7 +202,8 @@ def insert_bomb(conn, map_id, players, bombs):
     cur = conn.cursor()
 
     bombs['map_id'] = map_id
-    bombs['user_player_id'] = bombs['user_steamid'].map(players)
+    bombs['user_player_id'] = bombs['user_steamid'].map(players).astype('Int32')
+    bombs = bombs.replace({pd.NA: None})
 
     data = [tuple(row) for row in bombs[['map_id', 'user_player_id', 'tick', 'action']].values]
 
