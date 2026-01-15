@@ -35,18 +35,27 @@ def get_match_in_queue(conn, game_id=None):
     #Pull match in queue and download info and demo
     match = select_match(conn)
     if not match:
+        print('Unable to pull match!')
         return False
     
     game_id, match_url = match[0], match[1]
+    print(f'Pulled match {game_id} from queue')
     match_info = scrape_match(match_url)
     if match_info:
+        print(f'Downloading Match: {match_url}')
         demo_link = match_info['demo_download']
-        rar_path = download_file(demo_link, f'data/rars/demo{game_id}.rar')
+        rar_path = download_file(demo_link, f'data/rars/rar{game_id}.rar')
         if rar_path:
+            print('Rar File Downloaded')
             dem_files = extract_with_unar(rar_path, 'data/demos/')
             if dem_files:
+                print('Demos Extracted')
                 update_queue(conn, demo_link, game_id, updated=True)
                 return [match_info, dem_files]
+            else:
+                print('Unable to extract RAR files')
+        else:
+            print('Unable to Download RAR file')
 
     update_queue(conn, demo_link, game_id, updated=False)
     return None
