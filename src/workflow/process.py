@@ -68,4 +68,4 @@ def process(conn, match_info, dem_files):
         insert_bomb(conn, map_id, players, bombs)
 
         deleted = delete_file(file)
-        print(f'File was deleted: {deleted}')
+        print(f'File was deleted: {deleted} - {file}')
