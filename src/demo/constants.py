@@ -6,7 +6,7 @@ PLAYER_PROPS = [
     "team_num",
     "health",
     "X", "Y", "Z",
-    "velocity_X", "velocity_Y", "velocity_Z"
+    "velocity_X", "velocity_Y", "velocity_Z",
     "yaw", "pitch",
     "is_alive",
     "is_defusing",
@@ -28,7 +28,7 @@ KEEP_COLS = [
     'round_num',
     'health',
     'X', 'Y', 'Z',
-    'velocity_X', 'velocity_Y', 'velocity_Z'
+    'velocity_X', 'velocity_Y', 'velocity_Z',
     'yaw', 'pitch',
     'team_clan_name',
     'inventory',
