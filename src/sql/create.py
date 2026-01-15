@@ -2,7 +2,8 @@ import os
 from psycopg2 import connect, Error
 
 from src.sql.schema import (SCHEMA_DATA, INDEX_DATA,
-                            SCHEMA_QUEUE, INDEX_QUEUE)
+                            SCHEMA_QUEUE, INDEX_QUEUE,
+                            SCHEMA_ENUMS)
 
 def create_connection():
     #Create connection to postgresql db
@@ -21,9 +22,10 @@ def create_connection():
 def create_table(conn):
     cur = conn.cursor()
 
+    cur.execute(SCHEMA_ENUMS)
     cur.execute(SCHEMA_DATA)
     cur.execute(SCHEMA_QUEUE)
     cur.execute(INDEX_DATA)
     cur.execute(INDEX_QUEUE)
 
-    conn.close()
+    cur.close()
