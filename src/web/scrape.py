@@ -2,7 +2,7 @@ from curl_cffi import requests
 from bs4 import BeautifulSoup
 import re
 import time
-import datetime
+from datetime import datetime
 
 from src.web.constants import HEADERS
 
