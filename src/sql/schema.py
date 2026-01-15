@@ -9,6 +9,12 @@ CREATE TABLE IF NOT EXISTS data.events (
     event_name TEXT NOT NULL
 );
 
+-- TEAMS
+CREATE TABLE IF NOT EXISTS data.teams (
+    team_id SERIAL PRIMARY KEY,
+    team_name TEXT UNIQUE NOT NULL
+);
+
 -- MATCHES
 CREATE TABLE IF NOT EXISTS data.matches (
     match_id SERIAL PRIMARY KEY,
@@ -41,12 +47,6 @@ CREATE TABLE IF NOT EXISTS data.rounds(
     UNIQUE(map_id, round_num)
 );
 
--- TEAMS
-CREATE TABLE IF NOT EXISTS data.teams (
-    team_id SERIAL PRIMARY KEY,
-    team_name TEXT UNIQUE NOT NULL
-);
-
 -- PLAYERS
 CREATE TABLE IF NOT EXISTS data.players (
     player_id SERIAL PRIMARY KEY,
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS data.players (
 );
 
 -- ROSTERS
-CREATE TABLE IF NOT EXISTS data.map_rosters (
+CREATE TABLE IF NOT EXISTS data.rosters (
     map_id INTEGER REFERENCES maps(map_id) ON DELETE CASCADE,
     player_id INTEGER REFERENCES players(player_id) ON DELETE CASCADE,
     team_id INTEGER REFERENCES teams(team_id) ON DELETE CASCADE,
@@ -131,8 +131,6 @@ CREATE TABLE IF NOT EXISTS data.nade_ticks (
     weapon TEXT NOT NULL
 );
 
-CREATE TYPE bomb_action AS ENUM ('plant', 'defuse', 'explode');
-
 -- Bomb
 CREATE TABLE IF NOT EXISTS data.bomb_ticks (
     bomb_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -144,28 +142,24 @@ CREATE TABLE IF NOT EXISTS data.bomb_ticks (
 """
 
 INDEX_DATA = """
-CREATE INDEX IF NOT EXISTS idx_player_ticks_map_tick ON player_ticks(map_id, tick);
-CREATE INDEX IF NOT EXISTS idx_player_ticks_player ON player_ticks(user_player_id, tick);
-CREATE INDEX IF NOT EXISTS idx_player_ticks_round ON player_ticks(map_id, round_num);
+CREATE INDEX IF NOT EXISTS idx_player_ticks_map_tick ON ticks(map_id, tick);
+CREATE INDEX IF NOT EXISTS idx_player_ticks_player ON ticks(user_player_id, tick);
+CREATE INDEX IF NOT EXISTS idx_player_ticks_round ON ticks(map_id, round_num);
 CREATE INDEX IF NOT EXISTS idx_damage_map_tick ON damage_ticks(map_id, tick);
 CREATE INDEX IF NOT EXISTS idx_damage_user ON damage_ticks(user_player_id, tick);
 CREATE INDEX IF NOT EXISTS idx_death_map_tick ON death_ticks(map_id, tick);
 CREATE INDEX IF NOT EXISTS idx_nade_map_tick ON nade_ticks(map_id, tick);
-CREATE INDEX IF NOT EXISTS idx_inventory_gin ON player_ticks USING GIN (inventory);
+CREATE INDEX IF NOT EXISTS idx_inventory_gin ON ticks USING GIN (inventory);
 CREATE INDEX IF NOT EXISTS idx_roster_team ON map_rosters(team_id);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_player_ticks_unique ON player_ticks(map_id, user_player_id, tick);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_player_ticks_unique ON ticks(map_id, user_player_id, tick);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_death_unique ON death_ticks(map_id, user_player_id, tick);
 CREATE INDEX IF NOT EXISTS idx_rounds_map ON rounds(map_id);
 CREATE INDEX IF NOT EXISTS idx_rounds_lookup ON rounds(map_id, round_num);
-CREATE INDEX IF NOT EXISTS idx_bomb_round ON bomb_ticks(map_id, round_num);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_bomb_unique ON bomb_ticks(map_id, round_num, action);
 """
 
 SCHEMA_QUEUE = """
 CREATE SCHEMA IF NOT EXISTS queue;
 SET search_path TO data, queue, public;
-
-CREATE TYPE queue_status AS ENUM ('pending', 'processing', 'completed', 'failed');
 
 CREATE TABLE IF NOT EXISTS queue.match_queue (
     queue_id SERIAL PRIMARY KEY,
@@ -178,5 +172,19 @@ CREATE TABLE IF NOT EXISTS queue.match_queue (
 """
 
 INDEX_QUEUE = """
-CREATE INDEX idx_queue_status ON queue.processing_queue(status);
+CREATE INDEX IF NOT EXISTS idx_queue_status ON queue.match_queue(status);
+"""
+
+SCHEMA_ENUMS = """
+DO $$ BEGIN
+    CREATE TYPE bomb_action AS ENUM ('plant', 'defuse', 'explode');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE queue_status AS ENUM ('pending', 'processing', 'completed', 'failed');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 """
