@@ -3,6 +3,7 @@ import pandas as pd
 from pathlib import Path
 import numpy as np
 
+from src.utils import inventory_convert
 from src.demo.constants import (PLAYER_PROPS, 
                                 KEEP_COLS, 
                                 EVENT_PROPS, 
@@ -134,8 +135,11 @@ def parse_file(file):
     #CREATE MASKS FOR 8TH TICKS
     players['round_tick'] = players['tick']-players['start_tick']
     eighth_mask = (players['round_tick'] % 8 == 0)
-
     players = players[event_mask | eighth_mask]
+
+    inventory_df = players['inventory'].apply(inventory_convert).apply(pd.Series)
+    players = pd.concat([players.drop(columns='inventory'), inventory_df], axis=1)
+
     players = players[KEEP_COLS]
 
     return {
