@@ -1,7 +1,6 @@
 import pandas as pd
 from psycopg2.extras import execute_values
 
-from src.utils import inventory_convert
 from src.sql.statements import (EVENT_SQL, MATCH_SQL, MAP_SQL, ROUND_SQL,
                                     TEAM_SQL, PLAYER_SQL, ROSTER_SQL,
                                     TICK_SQL, DAMAGE_SQL, DEATH_SQL, NADE_SQL, BOMB_SQL,
@@ -121,21 +120,23 @@ def insert_ticks(conn, map_id, players, ticks):
 
     ticks['map_id'] = map_id
     ticks['user_player_id'] = ticks['steamid'].map(players).astype('Int32')
-    ticks['inventory'] = ticks['inventory'].apply(inventory_convert)
 
     data = [tuple(row) for row in ticks[['map_id', 
                                          'user_player_id', 
                                          'tick',
+                                         'round_tick',
                                          'round_num',
                                          'health',
                                          'X','Y','Z',
                                          'velocity_X','velocity_Y','velocity_Z',
                                          'yaw','pitch',
-                                         'inventory',
+                                         'primary','secondary',
+                                         'smoke','flash','he','molotov','incend','decoy',
                                          'current_equip_value',
                                          'has_armor',
                                          'has_helmet',
                                          'has_defuser',
+                                         'has_zeus',
                                          'is_ct',
                                          'is_defusing',
                                          'is_planted',

@@ -54,7 +54,7 @@ TICK_SQL = """
     INSERT INTO ticks (
         map_id, 
         user_player_id, 
-        tick, round_num, 
+        tick, round_tick, round_num, 
         health, 
         x, y, z, 
         velocity_x, velocity_y, velocity_z,
