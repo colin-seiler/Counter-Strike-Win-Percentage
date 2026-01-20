@@ -7,8 +7,6 @@ from src.sql.insert import insert_queue
 from src.web.scrape import scrape_match, scrape_results
 from src.web.download import download_file
 
-from src.utils import delete_file
-
 MAX_OFF = 15
 
 def scrape_initial_matches(conn):
