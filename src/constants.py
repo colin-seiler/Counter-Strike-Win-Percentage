@@ -19,3 +19,12 @@ SECONDARY_LIST = [
     'Desert Eagle', 
     'R8 Revolver'
     ]
+
+GRENADE_MAP = {
+        'High Explosive Grenade': 'he',
+        'Flashbang': 'flash',
+        'Smoke Grenade': 'smoke',
+        'Incendiary Grenade': 'incend',
+        'Molotov': 'molotov',
+        'Decoy Grenade': 'decoy'
+    }
